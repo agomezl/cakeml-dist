@@ -1,0 +1,9 @@
+[submodule "cakeml"]
+	path = cakeml
+	url = git@github.com:CakeML/cakeml.git
+[submodule "polyml"]
+	path = polyml
+	url = git@github.com:polyml/polyml.git
+[submodule "HOL"]
+	path = HOL
+	url = git@github.com:HOL-Theorem-Prover/HOL.git
