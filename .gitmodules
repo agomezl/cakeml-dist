@@ -1,6 +1,6 @@
 [submodule "cakeml"]
 	path = cakeml
-	url = git@github.com:CakeML/cakeml.git
+	url = git@github.com:agomezl/cakeml.git
 [submodule "polyml"]
 	path = polyml
 	url = git@github.com:polyml/polyml.git
