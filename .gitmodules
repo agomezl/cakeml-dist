@@ -7,3 +7,6 @@
 [submodule "HOL"]
 	path = HOL
 	url = git@github.com:HOL-Theorem-Prover/HOL.git
+[submodule "choreo"]
+	path = choreo
+	url = git@github.com:CakeML/choreo.git
