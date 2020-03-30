@@ -9,7 +9,7 @@ ENV HOME=${HOME:-/home/cake}
 
 # Install dependencies and setup users
 RUN dnf -y group install 'Development Tools' && \
-    dnf -y install gcc-c++ git sudo wget && \
+    dnf -y install gcc-c++ git sudo wget libffi-devel libtool && \
     useradd -ms /bin/bash cake && \
     echo "cake:docker" | chpasswd && \
     usermod -a -G wheel cake && \
