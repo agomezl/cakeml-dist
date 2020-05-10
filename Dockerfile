@@ -52,11 +52,12 @@ ENV HOLDIR /opt/HOL
 
 COPY ${ENV_REPO_LOCATION}/cakeml /opt/cakeml/
 
-# Build CakeML
-# RUN cd /opt/cakeml/ && \
-#     for dir in $(cat developers/build-sequence | grep -Ev '^([ #]|$)'); \
-#     do cd ${dir} && Holmake && cd -; \
-#     done
+##########
+# CakeML #
+##########
+FROM cakeml as choreo
+
+COPY ${ENV_REPO_LOCATION}/choreo /opt/choreo
 
 FROM fedora:30
 
@@ -78,3 +79,4 @@ ENV PATH /opt/polyml/bin/:${PATH}
 COPY --from=cakeml --chown=cake /opt/HOL /opt/HOL/
 ENV PATH /opt/HOL/bin/:${PATH}
 COPY --from=cakeml --chown=cake /opt/cakeml ${HOME}/cakeml/
+COPY --from=choreo --chown=cake /opt/choreo ${HOME}/choreo/
