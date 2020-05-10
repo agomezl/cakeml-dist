@@ -81,8 +81,13 @@ ENV PATH /opt/HOL/bin/:${PATH}
 COPY --from=cakeml --chown=cake /opt/cakeml ${HOME}/cakeml/
 COPY --from=choreo --chown=cake /opt/choreo ${HOME}/choreo/
 
-RUN cd choreo/projection/proofs/to_cake && \
-        Holmake compilationProofTheory && \
+ENV LANG en_US.UTF-8
+
+RUN cd choreo/projection/proofs/to_cake && Holmake && \
+        cd && choreo/example/filter     && Holmake && \
+        cd && choreo/example/hello      && Holmake && \
+        cd && choreo/example/pingpong   && Holmake && \
+        cd && choreo/example/split_test && Holmake && \
         echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
         echo '(load "/opt/HOL/tools/hol-unicode")' >> ~/.emacs && \
         echo '(transient-mark-mode 1)' >> ~/.emacs
