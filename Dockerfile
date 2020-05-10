@@ -85,9 +85,6 @@ ENV LANG en_US.UTF-8
 
 RUN cd choreo/projection/proofs/to_cake && Holmake && \
         cd && choreo/examples/filter     && Holmake && \
-        cd && choreo/examples/hello      && Holmake && \
-        cd && choreo/examples/pingpong   && Holmake && \
-        cd && choreo/examples/split_test && Holmake && \
         echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
         echo '(load "/opt/HOL/tools/hol-unicode")' >> ~/.emacs && \
         echo '(transient-mark-mode 1)' >> ~/.emacs
