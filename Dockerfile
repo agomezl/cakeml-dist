@@ -76,27 +76,23 @@ USER cake
 WORKDIR ${HOME}
 
 COPY --from=cakeml /opt/polyml /opt/polyml
-ENV PATH /opt/polyml/bin/:${PATH}
 COPY --from=cakeml --chown=cake /opt/HOL /opt/HOL/
-ENV PATH /opt/HOL/bin/:${PATH}
 COPY --from=cakeml --chown=cake /opt/cakeml ${HOME}/cakeml/
 COPY --from=choreo --chown=cake /opt/choreo ${HOME}/choreo/
+COPY --chown=cake ${ENV_REPO_LOCATION}/cake-x64-64  /opt/cake
 
+ENV PATH /opt/polyml/bin/:${PATH}
+ENV PATH /opt/HOL/bin/:${PATH}
+ENV PATH /opt/cake:${PATH}
 ENV LANG en_US.UTF-8
 
 RUN cd choreo/projection/proofs/to_cake && Holmake && \
-        cd && cd choreo/examples/filter && Holmake && \
-        echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
-        echo '(load "/opt/HOL/tools/hol-unicode")' >> ~/.emacs && \
-        echo '(transient-mark-mode 1)' >> ~/.emacs
-
-COPY --chown=cake ${ENV_REPO_LOCATION}/cake-x64-64  /opt/cake
-
-RUN cd /opt/cake && make
-
-ENV PATH /opt/cake:${PATH}
-
-RUN git config --global user.email "cake@cakeml.org" && \
+    cd && cd choreo/examples/filter && Holmake && \
+    echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
+    echo '(load "/opt/HOL/tools/hol-unicode")' >> ~/.emacs && \
+    echo '(transient-mark-mode 1)' >> ~/.emacs && \
+    cd /opt/cake && make && cd && \
+    git config --global user.email "cake@cakeml.org" && \
     git config --global user.name "Mr Cake" && \
     git config --global color.ui  auto && \
     mkdir camkes-sel4 && cd camkes-sel4 && \
@@ -107,7 +103,5 @@ RUN git config --global user.email "cake@cakeml.org" && \
     cd camkes-sel4 && mkdir build-filter && cd build-filter && \
     ../init-build.sh -DPLATFORM=x86_64 -DCAMKES_APP=filter_camkes && \
     ninja
-
-ENV PATH /${HOME}/camkes-sel4/build-filter/:${PATH}
 
 CMD emacs choreo/
