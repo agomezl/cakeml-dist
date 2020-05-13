@@ -3,21 +3,9 @@
 ########
 FROM fedora:30 as core
 
-# Arguments
-ARG HOME
-ENV HOME=${HOME:-/home/cake}
-
 # Install dependencies and setup users
 RUN dnf -y group install 'Development Tools' && \
-    dnf -y install gcc-c++ git sudo wget && \
-    useradd -ms /bin/bash cake && \
-    echo "cake:docker" | chpasswd && \
-    usermod -a -G wheel cake && \
-    echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
-
-USER cake
-
-WORKDIR ${HOME}
+    dnf -y install gcc-c++ git sudo wget libffi-devel libtool
 
 ##########
 # PolyML #
@@ -27,61 +15,57 @@ FROM core as poly
 # Arguments
 ARG ENV_REPO_LOCATION
 ENV ENV_REPO_LOCATION=${ENV_REPO_LOCATION:-.}
-ARG POLYML_DIR
-ENV POLYML_DIR=${POLYML_DIR:-${HOME}/opt/polyml}
 
 # Copy polyml repo from the local context
-COPY --chown=cake ${ENV_REPO_LOCATION}/polyml ${HOME}/polyml/
+COPY ${ENV_REPO_LOCATION}/polyml /opt/polyml/
 
 # Build polyml
-RUN cd polyml && \
-    ./configure --prefix=${POLYML_DIR} && \
+RUN cd /opt/polyml && \
+    ./configure --prefix=/opt/polyml && \
      make && make compiler && make install
+
+# Where to find polyml
+ENV PATH /opt/polyml/bin/:${PATH}
 
 ########
 # HOL4 #
 ########
 FROM poly as hol
 
-# Where to find polyml
-ENV PATH ${POLYML_DIR}/bin/:${PATH}
-
 # Copy HOL4 repo from the local context
-COPY --chown=cake ${ENV_REPO_LOCATION}/HOL ${HOME}/HOL/
+COPY ${ENV_REPO_LOCATION}/HOL /opt/HOL/
 
 # Build HOL4
-RUN cd HOL && \
+RUN cd /opt/HOL && \
     poly < tools/smart-configure.sml && \
     bin/build
+
+# Where to find Holmake
+ENV PATH /opt/HOL/bin/:${PATH}
 
 ##########
 # CakeML #
 ##########
 FROM hol as cakeml
 
-# Where to find HOL4
-ENV PATH ${HOME}/HOL/bin/:${PATH}
-ENV HOLDIR ${HOME}/HOL
+ENV HOLDIR /opt/HOL
 
-COPY --chown=cake ${ENV_REPO_LOCATION}/cakeml ${HOME}/cakeml/
+COPY ${ENV_REPO_LOCATION}/cakeml /opt/cakeml/
 
 # Build CakeML
-RUN cd cakeml/ && \
-    for dir in $(cat developers/build-sequence | grep -Ev '^([ #]|$)'); \
-    do cd ${dir} && Holmake && cd -; \
-    done
-
+# RUN cd /opt/cakeml/ && \
+#     for dir in $(cat developers/build-sequence | grep -Ev '^([ #]|$)'); \
+#     do cd ${dir} && Holmake && cd -; \
+#     done
 
 FROM fedora:30
 
 # arguments
 ARG HOME=/home/cake
-ARG POLYML_DIR=${HOME}/opt/polyml
 
-RUN dnf -y install git sudo
-
-# Add user
-RUN useradd -ms /bin/bash cake && \
+# Setup
+RUN dnf -y install git sudo gcc-c++ && \
+    useradd -ms /bin/bash cake && \
     echo "cake:docker" | chpasswd && \
     usermod -a -G wheel cake && \
     echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
@@ -89,9 +73,8 @@ RUN useradd -ms /bin/bash cake && \
 USER cake
 WORKDIR ${HOME}
 
-RUN mkdir -p ${POLYML_DIR} ${HOME}/HOL ${HOME}/cakeml
-COPY --from=cakeml --chown=cake ${POLYML_DIR} ${POLYML_DIR}/
-ENV PATH ${POLYML_DIR}/bin/:${PATH}
-COPY --from=cakeml --chown=cake ${HOME}/HOL ${HOME}/HOL/
-ENV PATH ${HOME}/HOL/bin/:${PATH}
-COPY --from=cakeml --chown=cake ${HOME}/cakeml ${HOME}/cakeml/
+COPY --from=cakeml /opt/polyml /opt/polyml
+ENV PATH /opt/polyml/bin/:${PATH}
+COPY --from=cakeml --chown=cake /opt/HOL /opt/HOL/
+ENV PATH /opt/HOL/bin/:${PATH}
+COPY --from=cakeml --chown=cake /opt/cakeml ${HOME}/cakeml/
