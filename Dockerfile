@@ -1,7 +1,7 @@
 ########
 # Core #
 ########
-FROM fedora:30 as core
+FROM fedora:32 as core
 
 # Install dependencies and setup users
 RUN dnf -y group install 'Development Tools' && \
@@ -64,7 +64,7 @@ FROM fedora:30
 ARG HOME=/home/cake
 
 # Setup
-RUN dnf -y install git sudo gcc-c++ && \
+RUN dnf -y install git sudo gcc-c++ emacs && \
     useradd -ms /bin/bash cake && \
     echo "cake:docker" | chpasswd && \
     usermod -a -G wheel cake && \
@@ -78,3 +78,17 @@ ENV PATH /opt/polyml/bin/:${PATH}
 COPY --from=cakeml --chown=cake /opt/HOL /opt/HOL/
 ENV PATH /opt/HOL/bin/:${PATH}
 COPY --from=cakeml --chown=cake /opt/cakeml ${HOME}/cakeml/
+
+ENV PATH /opt/polyml/bin/:${PATH}
+ENV PATH /opt/HOL/bin/:${PATH}
+ENV PATH /opt/cake:${PATH}
+ENV LANG en_US.UTF-8
+
+RUN cd ${HOME}/cakeml/examples/cost && Holmake && \
+    echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
+    echo '(load "/opt/HOL/tools/hol-unicode")' >> ~/.emacs && \
+    echo '(transient-mark-mode 1)' >> ~/.emacs
+
+CMD emacs choreo/
+
+RUN cd ${HOME}/cakeml/examples/cost && Holmake
