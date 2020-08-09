@@ -58,7 +58,7 @@ COPY ${ENV_REPO_LOCATION}/cakeml /opt/cakeml/
 #     do cd ${dir} && Holmake && cd -; \
 #     done
 
-FROM fedora:30
+FROM fedora:32
 
 # arguments
 ARG HOME=/home/cake
@@ -85,7 +85,7 @@ ENV PATH /opt/cake:${PATH}
 ENV LANG en_US.UTF-8
 
 RUN cd ${HOME}/cakeml/examples/cost && Holmake && \
-    echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
+    cd ${HOME}/compiler/proofs && Holmake && \
     echo '(load "/opt/HOL/tools/hol-unicode")' >> ~/.emacs && \
     echo '(transient-mark-mode 1)' >> ~/.emacs
 
