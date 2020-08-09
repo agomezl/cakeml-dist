@@ -84,10 +84,11 @@ ENV PATH /opt/HOL/bin/:${PATH}
 ENV PATH /opt/cake:${PATH}
 ENV LANG en_US.UTF-8
 
-RUN cd ${HOME}/cakeml/examples/cost && Holmake && \
-    cd ${HOME}/compiler/proofs && Holmake && \
+RUN cd ${HOME}/cakeml/compiler/proofs && Holmake && \
     echo '(load "/opt/HOL/tools/hol-unicode")' >> ~/.emacs && \
     echo '(transient-mark-mode 1)' >> ~/.emacs
+
+RUN cd ${HOME}/cakeml/examples/cost && Holmake
 
 CMD emacs choreo/
 
