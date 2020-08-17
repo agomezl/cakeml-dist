@@ -72,7 +72,7 @@ ENV LANG en_US.UTF-8
 
 RUN cd ${HOME}/cakeml/examples/cost && Holmake && \
     cd ${HOME}/cakeml/compiler/proofs && Holmake && \
-    echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
+    echo '(load "/home/cake/HOL/tools/hol-mode")' >> ~/.emacs && \
     echo '(transient-mark-mode 1)' >> ~/.emacs
 
 CMD emacs cakeml/
