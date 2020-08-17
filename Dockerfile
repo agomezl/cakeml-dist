@@ -33,30 +33,19 @@ ENV PATH /opt/polyml/bin/:${PATH}
 FROM poly as hol
 
 # Copy HOL4 repo from the local context
-COPY ${ENV_REPO_LOCATION}/HOL /opt/HOL/
+COPY ${ENV_REPO_LOCATION}/HOL /home/cake/HOL/
 
 # Build HOL4
-RUN cd /opt/HOL && \
+RUN cd /home/cake/HOL && \
     poly < tools/smart-configure.sml && \
     bin/build
 
 # Where to find Holmake
-ENV PATH /opt/HOL/bin/:${PATH}
+ENV PATH /home/cake/HOL/bin/:${PATH}
 
 ##########
 # CakeML #
 ##########
-FROM hol as cakeml
-
-ENV HOLDIR /opt/HOL
-
-COPY ${ENV_REPO_LOCATION}/cakeml /opt/cakeml/
-
-# Build CakeML
-# RUN cd /opt/cakeml/ && \
-#     for dir in $(cat developers/build-sequence | grep -Ev '^([ #]|$)'); \
-#     do cd ${dir} && Holmake && cd -; \
-#     done
 
 FROM fedora:32
 
@@ -73,23 +62,17 @@ RUN dnf -y install git sudo gcc-c++ emacs && \
 USER cake
 WORKDIR ${HOME}
 
-COPY --from=cakeml /opt/polyml /opt/polyml
-ENV PATH /opt/polyml/bin/:${PATH}
-COPY --from=cakeml --chown=cake /opt/HOL /opt/HOL/
-ENV PATH /opt/HOL/bin/:${PATH}
-COPY --from=cakeml --chown=cake /opt/cakeml ${HOME}/cakeml/
+COPY --from=hol /opt/polyml /opt/polyml/
+COPY --from=hol --chown=cake ${HOME}/HOL ${HOME}/HOL/
+COPY --chown=cake ${ENV_REPO_LOCATION}/cakeml ${HOME}/cakeml/
 
 ENV PATH /opt/polyml/bin/:${PATH}
-ENV PATH /opt/HOL/bin/:${PATH}
-ENV PATH /opt/cake:${PATH}
+ENV PATH ${HOME}/HOL/bin/:${PATH}
 ENV LANG en_US.UTF-8
 
-RUN cd ${HOME}/cakeml/compiler/proofs && Holmake && \
-    echo '(load "/opt/HOL/tools/hol-unicode")' >> ~/.emacs && \
+RUN cd ${HOME}/cakeml/examples/cost && Holmake && \
+    cd ${HOME}/cakeml/compiler/proofs && Holmake && \
+    echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
     echo '(transient-mark-mode 1)' >> ~/.emacs
 
-RUN cd ${HOME}/cakeml/examples/cost && Holmake
-
-CMD emacs choreo/
-
-RUN cd ${HOME}/cakeml/examples/cost && Holmake
+CMD emacs cakeml/
