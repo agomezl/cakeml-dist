@@ -1,7 +1,7 @@
 ########
 # Core #
 ########
-FROM fedora:30 as core
+FROM fedora:34 as core
 
 # Install dependencies and setup users
 RUN dnf -y group install 'Development Tools' && \
