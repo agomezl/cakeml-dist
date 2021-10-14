@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd /home/cake/camkes-sel4/build-filter/
+
+exec ./simulate
