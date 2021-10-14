@@ -1,11 +1,10 @@
 ########
 # Core #
 ########
-FROM fedora:34 as core
+FROM trustworthysystems/camkes as core
 
 # Install dependencies and setup users
-RUN dnf -y group install 'Development Tools' && \
-    dnf -y install gcc-c++ git sudo wget libffi-devel libtool
+RUN apt-get update
 
 ##########
 # PolyML #
@@ -59,13 +58,15 @@ FROM cakeml as choreo
 
 COPY ${ENV_REPO_LOCATION}/choreo /opt/choreo
 
-FROM fedora:30
+FROM trustworthysystems/camkes
 
 # arguments
 ARG HOME=/home/cake
 
 # Setup
-RUN dnf -y install git sudo gcc-c++ emacs && \
+RUN apt-get update && \
+    apt-get install -y sudo emacs && \
+    groupadd wheel && \
     useradd -ms /bin/bash cake && \
     echo "cake:docker" | chpasswd && \
     usermod -a -G wheel cake && \
@@ -75,18 +76,32 @@ USER cake
 WORKDIR ${HOME}
 
 COPY --from=cakeml /opt/polyml /opt/polyml
-ENV PATH /opt/polyml/bin/:${PATH}
 COPY --from=cakeml --chown=cake /opt/HOL /opt/HOL/
-ENV PATH /opt/HOL/bin/:${PATH}
 COPY --from=cakeml --chown=cake /opt/cakeml ${HOME}/cakeml/
 COPY --from=choreo --chown=cake /opt/choreo ${HOME}/choreo/
+COPY --chown=cake ${ENV_REPO_LOCATION}/cake-x64-64  /opt/cake
 
+ENV PATH /opt/polyml/bin/:${PATH}
+ENV PATH /opt/HOL/bin/:${PATH}
+ENV PATH /opt/cake:${PATH}
 ENV LANG en_US.UTF-8
 
 RUN cd choreo/projection/proofs/to_cake && Holmake && \
-        cd && cd choreo/examples/filter && Holmake && \
-        echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
-        echo '(load "/opt/HOL/tools/hol-unicode")' >> ~/.emacs && \
-        echo '(transient-mark-mode 1)' >> ~/.emacs
+    cd && cd choreo/examples/filter && Holmake && \
+    echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
+    echo '(load "/opt/HOL/tools/hol-unicode")' >> ~/.emacs && \
+    echo '(transient-mark-mode 1)' >> ~/.emacs && \
+    cd /opt/cake && make && cd && \
+    git config --global user.email "cake@cakeml.org" && \
+    git config --global user.name "Mr Cake" && \
+    git config --global color.ui  auto && \
+    mkdir camkes-sel4 && cd camkes-sel4 && \
+    repo init -u https://github.com/seL4/camkes-manifest && \
+    repo sync && cd && \
+    ln -s ${HOME}/choreo/examples/filter/filter_camkes \
+          ${HOME}/camkes-sel4/projects/camkes/apps/ && \
+    cd camkes-sel4 && mkdir build-filter && cd build-filter && \
+    ../init-build.sh -DPLATFORM=x86_64 -DCAMKES_APP=filter_camkes && \
+    ninja
 
 CMD emacs choreo/
