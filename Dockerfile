@@ -86,6 +86,7 @@ ENV PATH /opt/HOL/bin/:${PATH}
 ENV PATH /opt/cake:${PATH}
 ENV LANG en_US.UTF-8
 
+# HOL Stuff
 RUN cd choreo/projection/proofs/to_cake && Holmake && \
     cd && cd choreo/examples/filter && Holmake && \
     echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
@@ -94,8 +95,10 @@ RUN cd choreo/projection/proofs/to_cake && Holmake && \
     cd /opt/cake && make && cd && \
     git config --global user.email "cake@cakeml.org" && \
     git config --global user.name "Mr Cake" && \
-    git config --global color.ui  auto && \
-    mkdir camkes-sel4 && cd camkes-sel4 && \
+    git config --global color.ui  auto
+
+# Camkes Stuff
+RUN mkdir camkes-sel4 && cd camkes-sel4 && \
     repo init -u https://github.com/seL4/camkes-manifest && \
     repo sync && cd && \
     ln -s ${HOME}/choreo/examples/filter/filter_camkes \
