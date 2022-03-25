@@ -52,11 +52,12 @@ ENV HOLDIR /opt/HOL
 
 COPY ${ENV_REPO_LOCATION}/cakeml /opt/cakeml/
 
-# Build CakeML
-# RUN cd /opt/cakeml/ && \
-#     for dir in $(cat developers/build-sequence | grep -Ev '^([ #]|$)'); \
-#     do cd ${dir} && Holmake && cd -; \
-#     done
+##########
+# CakeML #
+##########
+FROM cakeml as choreo
+
+COPY ${ENV_REPO_LOCATION}/choreo /opt/choreo
 
 FROM fedora:30
 
@@ -64,7 +65,7 @@ FROM fedora:30
 ARG HOME=/home/cake
 
 # Setup
-RUN dnf -y install git sudo gcc-c++ && \
+RUN dnf -y install git sudo gcc-c++ emacs && \
     useradd -ms /bin/bash cake && \
     echo "cake:docker" | chpasswd && \
     usermod -a -G wheel cake && \
@@ -78,3 +79,14 @@ ENV PATH /opt/polyml/bin/:${PATH}
 COPY --from=cakeml --chown=cake /opt/HOL /opt/HOL/
 ENV PATH /opt/HOL/bin/:${PATH}
 COPY --from=cakeml --chown=cake /opt/cakeml ${HOME}/cakeml/
+COPY --from=choreo --chown=cake /opt/choreo ${HOME}/choreo/
+
+ENV LANG en_US.UTF-8
+
+RUN cd choreo/projection/proofs/to_cake && Holmake && \
+        cd && cd choreo/examples/filter && Holmake && \
+        echo '(load "/opt/HOL/tools/hol-mode")' >> ~/.emacs && \
+        echo '(load "/opt/HOL/tools/hol-unicode")' >> ~/.emacs && \
+        echo '(transient-mark-mode 1)' >> ~/.emacs
+
+CMD emacs choreo/

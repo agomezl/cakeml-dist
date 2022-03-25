@@ -1,9 +1,15 @@
 [submodule "cakeml"]
 	path = cakeml
 	url = git@github.com:CakeML/cakeml.git
+	branch = master
 [submodule "polyml"]
 	path = polyml
 	url = git@github.com:polyml/polyml.git
 [submodule "HOL"]
 	path = HOL
 	url = git@github.com:HOL-Theorem-Prover/HOL.git
+	branch = master
+[submodule "choreo"]
+	path = choreo
+	url = git@github.com:CakeML/choreo.git
+	branch = master
